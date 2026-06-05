@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head><title>Staff Signup</title></head>
+<body>
+  <h2>Staff Signup</h2>
+
+  <form method="POST" action="/signup_staff">
+    <label>Name</label><br>
+    <input name="name" required><br><br>
+
+    <label>Email</label><br>
+    <input type="email" name="email" required><br><br>
+
+    <label>Password</label><br>
+    <input type="password" name="password" required><br><br>
+
+    <label>Phone</label><br>
+    <input name="phone"><br><br>
+
+    <label>Experience (years)</label><br>
+    <input name="experience_years" type="number" min="0"><br><br>
+
+    <button type="submit">Sign Up (Staff)</button>
+  </form>
+</body>
+</html>
