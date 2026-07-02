@@ -27,6 +27,7 @@ class StaffProfile(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False)
     phone = db.Column(db.String(10))
     experience_years = db.Column(db.Integer)
+    accepted = db.Column(db.Boolean, default=False, nullable=False)
     assigned_treks = db.relationship("Trek", back_populates="assigned_staff", foreign_keys="Trek.assigned_staff_id")
 
     user = db.relationship("User", back_populates="staff_profile")

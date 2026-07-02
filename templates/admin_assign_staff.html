@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head><title>Assign Staff to Trek</title></head>
+<body>
+  <h2>Assign Staff to: {{ trek.name }}</h2>
+  <a href="{{ url_for('admin_treks') }}">Back to Treks</a>
+
+  <form method="POST" action="{{ url_for('admin_assign_staff_post', trek_id=trek.id) }}">
+    <label>Select Staff</label><br>
+    <select name="staff_id" required>
+      <option value="">-- select --</option>
+      {% for s in staff %}
+        <option value="{{ s.id }}" {% if trek.assigned_staff_id == s.id %}selected{% endif %}>
+          {{ s.name }} ({{ s.email }})
+        </option>
+      {% endfor %}
+    </select><br><br>
+
+    <button type="submit">Assign</button>
+  </form>
+</body>
+</html>

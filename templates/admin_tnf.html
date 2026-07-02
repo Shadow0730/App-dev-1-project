@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head><title>{% if trek %}Edit{% else %}Create{% endif %} Trek</title></head>
+<body>
+  <h2>{% if trek %}Edit Trek{% else %}Create Trek{% endif %}</h2>
+
+  <form method="POST" action="{% if trek %}{{ url_for('admin_trek_edit_post', trek_id=trek.id) }}{% else %}{{ url_for('admin_trek_new_post') }}{% endif %}">
+    <label>Trek Name</label><br>
+    <input name="name" value="{{ trek.name if trek else '' }}" required><br><br>
+
+    <label>Difficulty</label><br>
+    <select name="difficulty" required>
+      <option value="">-- select --</option>
+      <option value="EASY" {% if trek and trek.difficulty == 'EASY' %}selected{% endif %}>Easy</option>
+      <option value="MEDIUM" {% if trek and trek.difficulty == 'MEDIUM' %}selected{% endif %}>Medium</option>
+      <option value="HARD" {% if trek and trek.difficulty == 'HARD' %}selected{% endif %}>Hard</option>
+    </select><br><br>
+
+    <label>Duration (days)</label><br>
+    <input type="number" name="duration_days" value="{{ trek.duration_days if trek else '' }}" required><br><br>
+
+    <label>Available Slots</label><br>
+    <input type="number" name="available_slots" value="{{ trek.available_slots if trek else '' }}" required><br><br>
+
+    <label>Status</label><br>
+    <select name="status">
+      <option value="DRAFT" {% if trek and trek.status == 'DRAFT' %}selected{% endif %}>Draft</option>
+      <option value="PUBLISHED" {% if trek and trek.status == 'PUBLISHED' %}selected{% endif %}>Published</option>
+      <option value="CANCELLED" {% if trek and trek.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+    </select><br><br>
+
+    <button type="submit">{% if trek %}Update{% else %}Create{% endif %}</button>
+  </form>
+</body>
+</html>

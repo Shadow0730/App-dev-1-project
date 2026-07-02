@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <title>Admin Dashboard</title>
+</head>
+<body>
+  <h1>Admin Dashboard</h1>
+  <a href="{{ url_for('logout') }}">Logout</a>
+  <h2>Management</h2>
+  <ul>
+    <li><a href="{{ url_for('admin_treks') }}">Manage Treks</a></li>
+    <li><a href="{{ url_for('admin_staff') }}">Manage Staff</a></li>
+
+  </ul>
+
+  <h2>Search</h2>
+  <form method="POST" action="{{ url_for('admin_search') }}">
+    <input name="query" placeholder="Search by name or ID" required>
+    <select name="search_type">
+      <option value="all">All</option>
+      <option value="trek">Trek</option>
+      <option value="staff">Staff</option>
+      <option value="user">User</option>
+    </select>
+    <button type="submit">Search</button>
+  </form>
+</body>
+</html>

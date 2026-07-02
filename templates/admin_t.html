@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head><title>Manage Treks</title></head>
+<body>
+  <h2>Manage Treks</h2>
+  <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+  <a href="{{ url_for('admin_trek_new') }}"><button>Create Trek</button></a>
+
+  {% if treks %}
+    <table border="1" cellpadding="10">
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Difficulty</th>
+        <th>Duration (days)</th>
+        <th>Slots</th>
+        <th>Status</th>
+        <th>Assigned Staff</th>
+        <th>Actions</th>
+      </tr>
+      {% for trek in treks %}
+        <tr>
+          <td>{{ trek.id }}</td>
+          <td>
+          <a href="{{ url_for('admin_trek_detail', trek_id=trek.id) }}">
+            {{ trek.name }}
+          </a>
+          </td>
+          <td>{{ trek.difficulty }}</td>
+          <td>{{ trek.duration_days }}</td>
+          <td>{{ trek.available_slots }}</td>
+          <td>{{ trek.status }}</td>
+          <td>
+            {% if trek.assigned_staff %}
+              {{ trek.assigned_staff.name }}
+            {% else %}
+              Not assigned
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('admin_trek_edit', trek_id=trek.id) }}">Edit</a>
+            <a href="{{ url_for('admin_assign_staff', trek_id=trek.id) }}">Assign Staff</a>
+            <form method="POST" action="{{ url_for('admin_trek_delete', trek_id=trek.id) }}" style="display:inline;">
+              <button type="submit" onclick="return confirm('Delete this trek?')">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>No treks created yet.</p>
+  {% endif %}
+</body>
+</html>

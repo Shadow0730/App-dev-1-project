@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head><title>Manage Staff</title></head>
+<body>
+  <h2>Manage Staff</h2>
+  <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+
+  {% if staff %}
+    <table border="1" cellpadding="10">
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Experience</th>
+        <th>Actions</th>
+        <th>accept</th>
+      </tr>
+      {% for s in staff %}
+        <tr>
+          <td>{{ s.id }}</td>
+          <td>{{ s.name }}</td>
+          <td>{{ s.email }}</td>
+          <td>{{ s.staff_profile.phone if s.staff_profile else '-' }}</td>
+          <td>{{ s.staff_profile.experience_years if s.staff_profile else '-' }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('admin_staff_delete', staff_id=s.id) }}" style="display:inline;">
+              <button type="submit" onclick="return confirm('Remove this staff?')">Remove</button>
+            </form>
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('admin_staff_accept', staff_id=s.id) }}" style="display:inline;">
+              <button type="checkbox" onclick="return confirm('Accept this staff?')"></button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>No staff added yet.</p>
+  {% endif %}
+</body>
+</html>
