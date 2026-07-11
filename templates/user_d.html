@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head><title>User Dashboard</title></head>
+<body>
+  <h2>User Dashboard</h2>
+  <a href="{{ url_for('logout') }}">Logout</a>
+
+  <p><strong>Total Bookings:</strong> {{ total_bookings }}</p>
+  <p><strong>Active Bookings:</strong> {{ active_bookings }}</p>
+
+  <ul>
+    <li><a href="{{ url_for('user_profile') }}">My Profile</a></li>
+    <li><a href="{{ url_for('user_treks') }}">View Open Treks</a></li>
+    <li><a href="{{ url_for('user_my_bookings') }}">My Bookings</a></li>
+    <li><a href="{{ url_for('user_trek_history') }}">Trek History</a></li>
+  </ul>
+</body>
+</html>

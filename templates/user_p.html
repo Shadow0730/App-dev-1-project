@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head><title>My Profile</title></head>
+<body>
+  <h2>My Profile</h2>
+  <a href="{{ url_for('user_dashboard') }}">Back to Dashboard</a>
+
+  <form method="POST" action="{{ url_for('user_profile_update') }}">
+    <label>Name</label><br>
+    <input type="text" name="name" value="{{ user.name }}" required><br><br>
+
+    <label>Email (readonly)</label><br>
+    <input type="email" value="{{ user.email }}" readonly><br><br>
+
+    <button type="submit">Update Profile</button>
+  </form>
+</body>
+</html>

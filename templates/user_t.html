@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head><title>Open Treks</title></head>
+<body>
+  <h2>Available / Open Treks</h2>
+  <a href="{{ url_for('user_dashboard') }}">Back to Dashboard</a>
+
+  <form method="GET" action="{{ url_for('user_treks') }}">
+    <input type="text" name="q" placeholder="Search trek name" value="{{ search_query }}">
+    <select name="difficulty">
+      <option value="">All Difficulty</option>
+      <option value="EASY" {% if selected_difficulty=="EASY" %}selected{% endif %}>EASY</option>
+      <option value="MEDIUM" {% if selected_difficulty=="MEDIUM" %}selected{% endif %}>MEDIUM</option>
+      <option value="HARD" {% if selected_difficulty=="HARD" %}selected{% endif %}>HARD</option>
+    </select>
+    <input type="text" name="location" placeholder="Location" value="{{ selected_location }}">
+    <button type="submit">Filter</button>
+  </form>
+
+  {% if treks %}
+    <table border="1" cellpadding="8">
+      <tr>
+        <th>Name</th>
+        <th>Location</th>
+        <th>Difficulty</th>
+        <th>Duration</th>
+        <th>Slots</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+      {% for trek in treks %}
+      <tr>
+        <td>{{ trek.name }}</td>
+        <td>{{ trek.location }}</td>
+        <td>{{ trek.difficulty }}</td>
+        <td>{{ trek.duration_days }} days</td>
+        <td>{{ trek.available_slots }}</td>
+        <td>{{ trek.status }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('user_book_trek', trek_id=trek.id) }}">
+            <button type="submit">Book</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>No open treks available right now.</p>
+  {% endif %}
+</body>
+</html>

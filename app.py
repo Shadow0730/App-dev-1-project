@@ -40,8 +40,7 @@ def signup_trekker():
             flash("Email already exists. Please login.", "warning")
             return redirect(url_for("login"))
 
-        u = User(name=name, email=email, role="TREKKER")
-        u.set_password(password)
+        u = User(name=name, email=email, role="TREKKER",password=password)
         db.session.add(u)
         db.session.commit()
 
@@ -109,7 +108,7 @@ def login():
         elif user.role == "STAFF":
             return redirect(url_for("staff_dashboard"))
         else: 
-            return redirect(url_for("trekker_dashboard"))
+            return redirect(url_for("user_dashboard"))
     return render_template("login.html")
 
 @app.route("/admin/dashboard", methods=["GET"])
@@ -325,22 +324,270 @@ def admin_search():
     )
 
 
-
+# ---------------- STAFF DASHBOARD ----------------
 @app.get("/staff/dashboard")
 def staff_dashboard():
     if session.get("role") != "STAFF":
         return redirect(url_for("login"))
+
     staff_id = session.get("user_id")
 
     assigned_treks = Trek.query.filter_by(assigned_staff_id=staff_id).all()
+    assigned_trek_ids = [t.id for t in assigned_treks]
 
-    return render_template("staff_dashboard.html", treks=assigned_treks)
+    # Count trekkers registered in assigned treks
+    registered_count = 0
+    if assigned_trek_ids:
+        registered_count = Booking.query.filter(
+            Booking.trek_id.in_(assigned_trek_ids)
+        ).count()
 
-@app.get("/trekker/dashboard")
-def trekker_dashboard():
+    return render_template(
+        "staf_d.html",
+        treks=assigned_treks,
+        registered_count=registered_count
+    )
+
+
+# ---------------- STAFF TREK DETAIL ----------------
+@app.get("/staff/trek/<int:trek_id>")
+def staff_trek_detail(trek_id):
+    if session.get("role") != "STAFF":
+        return redirect(url_for("login"))
+
+    staff_id = session.get("user_id")
+    trek = Trek.query.get_or_404(trek_id)
+
+    # Ensure only assigned staff can access
+    if trek.assigned_staff_id != staff_id:
+        flash("You are not allowed to access this trek.", "danger")
+        return redirect(url_for("staff_dashboard"))
+
+    participants = Booking.query.filter_by(trek_id=trek.id).all()
+
+    return render_template(
+        "staf_td.html",
+        trek=trek,
+        participants=participants
+    )
+
+
+# ---------------- UPDATE TREK SLOTS ----------------
+@app.post("/staff/trek/<int:trek_id>/slots")
+def staff_update_slots(trek_id):
+    if session.get("role") != "STAFF":
+        return redirect(url_for("login"))
+
+    staff_id = session.get("user_id")
+    trek = Trek.query.get_or_404(trek_id)
+
+    if trek.assigned_staff_id != staff_id:
+        flash("Unauthorized action.", "danger")
+        return redirect(url_for("staff_dashboard"))
+
+    slots = request.form.get("available_slots", "").strip()
+
+    try:
+        slots = int(slots)
+        if slots < 0:
+            raise ValueError
+
+        trek.available_slots = slots
+        db.session.commit()
+        flash("Available slots updated.", "success")
+    except ValueError:
+        flash("Enter a valid non-negative number for slots.", "warning")
+
+    return redirect(url_for("staff_trek_detail", trek_id=trek.id))
+
+
+# ---------------- UPDATE TREK STATUS (OPEN/CLOSED/STARTED/ONGOING/COMPLETED) ----------------
+@app.post("/staff/trek/<int:trek_id>/status")
+def staff_update_status(trek_id):
+    if session.get("role") != "STAFF":
+        return redirect(url_for("login"))
+
+    staff_id = session.get("user_id")
+    trek = Trek.query.get_or_404(trek_id)
+
+    if trek.assigned_staff_id != staff_id:
+        flash("Unauthorized action.", "danger")
+        return redirect(url_for("staff_dashboard"))
+
+    new_status = request.form.get("status", "").strip().upper()
+    trek.status = new_status
+    db.session.commit()
+
+    flash(f"Trek status updated to {new_status}.", "success")
+    return redirect(url_for("staff_trek_detail", trek_id=trek.id))
+
+
+# ---------------- REMOVE PARTICIPANT (optional manage participant list) ----------------
+@app.post("/staff/trek/<int:trek_id>/participant/<int:booking_id>/remove")
+def staff_remove_participant(trek_id, booking_id):
+    if session.get("role") != "STAFF":
+        return redirect(url_for("login"))
+
+    staff_id = session.get("user_id")
+    trek = Trek.query.get_or_404(trek_id)
+
+    if trek.assigned_staff_id != staff_id:
+        flash("Unauthorized action.", "danger")
+        return redirect(url_for("staff_dashboard"))
+
+    booking = Booking.query.get_or_404(booking_id)
+    db.session.delete(booking)
+    db.session.commit()
+
+    flash("Participant removed from trek.", "success")
+    return redirect(url_for("staff_trek_detail", trek_id=trek.id))
+
+
+@app.get("/user/dashboard")
+def user_dashboard():
     if session.get("role") != "TREKKER":
         return redirect(url_for("login"))
-    return render_template("trekker_dashboard.html")
+
+    user_id = session.get("user_id")
+
+    total_bookings = Booking.query.filter_by(user_id=user_id).count()
+    active_bookings = Booking.query.filter(
+        Booking.user_id == user_id,
+        Booking.booking_status.in_(["CONFIRMED", "ACTIVE"])
+    ).count()
+
+    return render_template(
+        "user_d.html",
+        total_bookings=total_bookings,
+        active_bookings=active_bookings
+    )
+
+
+# ---------------- PROFILE UPDATE ----------------
+@app.get("/user/profile")
+def user_profile():
+    if session.get("role") != "TREKKER":
+        return redirect(url_for("login"))
+
+    user = User.query.get_or_404(session["user_id"])
+    return render_template("user_p.html", user=user)
+
+
+@app.post("/user/profile")
+def user_profile_update():
+    if session.get("role") != "TREKKER":
+        return redirect(url_for("login"))
+
+    user = User.query.get_or_404(session["user_id"])
+    name = request.form.get("name", "").strip()
+
+    if not name:
+        flash("Name is required.", "warning")
+        return redirect(url_for("user_profile"))
+
+    user.name = name
+    db.session.commit()
+    flash("Profile updated successfully.", "success")
+    return redirect(url_for("user_profile"))
+
+
+# ---------------- VIEW / SEARCH / FILTER OPEN TREKS ----------------
+@app.get("/user/treks")
+def user_treks():
+    if session.get("role") != "TREKKER":
+        return redirect(url_for("login"))
+
+    difficulty = request.args.get("difficulty", "").strip()
+    location = request.args.get("location", "").strip()
+    q = request.args.get("q", "").strip()
+
+    filters = [Trek.status == "OPEN", Trek.available_slots > 0]
+
+    if difficulty:
+        filters.append(Trek.difficulty.ilike(difficulty))
+    if location:
+        filters.append(Trek.location.ilike(f"%{location}%"))
+    if q:
+        filters.append(Trek.name.ilike(f"%{q}%"))
+
+    treks = Trek.query.filter(and_(*filters)).order_by(Trek.id.desc()).all()
+
+    return render_template(
+        "user_t.html",
+        treks=treks,
+        selected_difficulty=difficulty,
+        selected_location=location,
+        search_query=q
+    )
+
+
+# ---------------- BOOK TREK ----------------
+@app.post("/user/trek/<int:trek_id>/book")
+def user_book_trek(trek_id):
+    if session.get("role") != "TREKKER":
+        return redirect(url_for("login"))
+
+    user_id = session.get("user_id")
+    trek = Trek.query.get_or_404(trek_id)
+
+    # prevent booking if trek is closed/full
+    if trek.status != "OPEN":
+        flash("Booking not allowed. Trek is not open.", "warning")
+        return redirect(url_for("user_treks"))
+
+    if trek.available_slots <= 0:
+        flash("Booking not allowed. Trek slots are full.", "warning")
+        return redirect(url_for("user_treks"))
+
+    # prevent duplicate booking
+    existing = Booking.query.filter_by(user_id=user_id, trek_id=trek.id).first()
+    if existing:
+        flash("You already booked this trek.", "info")
+        return redirect(url_for("user_my_bookings"))
+
+    booking = Booking(
+        user_id=user_id,
+        trek_id=trek.id,
+        booking_status="CONFIRMED",
+        payment_status="PENDING"
+    )
+
+    trek.available_slots -= 1
+    db.session.add(booking)
+    db.session.commit()
+
+    flash("Trek booked successfully!", "success")
+    return redirect(url_for("user_my_bookings"))
+
+
+# ---------------- VIEW BOOKED TREKS + STATUS ----------------
+@app.get("/user/bookings")
+def user_my_bookings():
+    if session.get("role") != "TREKKER":
+        return redirect(url_for("login"))
+
+    user_id = session.get("user_id")
+    bookings = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).all()
+
+    return render_template("user_b.html", bookings=bookings)
+
+
+# ---------------- TREKKING HISTORY ----------------
+@app.get("/user/history")
+def user_trek_history():
+    if session.get("role") != "TREKKER":
+        return redirect(url_for("login"))
+
+    user_id = session.get("user_id")
+
+    history = Booking.query.filter(
+        Booking.user_id == user_id,
+        Booking.booking_status.in_(["COMPLETED", "CANCELLED"])
+    ).order_by(Booking.id.desc()).all()
+
+    return render_template("user_h.html", history=history)
+@app.get("/trekker/dashboard")
+
 
 @app.get("/logout")
 def logout():

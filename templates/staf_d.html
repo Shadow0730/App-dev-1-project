@@ -4,19 +4,37 @@
   <title>Staff Dashboard</title>
 </head>
 <body>
-  <h2>Staff Dashboard</h2>
+  <h2>Trek Staff Dashboard</h2>
   <p><a href="{{ url_for('logout') }}">Logout</a></p>
 
-  <h3>Your Assigned Treks</h3>
+  <h3>Summary</h3>
+  <p><strong>Assigned Treks:</strong> {{ treks|length }}</p>
+  <p><strong>Total Registered Trekkers:</strong> {{ registered_count }}</p>
 
-  {% if treks and treks|length > 0 %}
-    <ul>
+  <h3>Your Assigned Treks</h3>
+  {% if treks %}
+    <table border="1" cellpadding="8">
+      <tr>
+        <th>ID</th>
+        <th>Trek Name</th>
+        <th>Status</th>
+        <th>Available Slots</th>
+        <th>Action</th>
+      </tr>
       {% for trek in treks %}
-        <li>{{ trek.name }}</li>
+        <tr>
+          <td>{{ trek.id }}</td>
+          <td>{{ trek.name }}</td>
+          <td>{{ trek.status }}</td>
+          <td>{{ trek.available_slots }}</td>
+          <td>
+            <a href="{{ url_for('staff_trek_detail', trek_id=trek.id) }}">Manage Trek</a>
+          </td>
+        </tr>
       {% endfor %}
-    </ul>
+    </table>
   {% else %}
-    <p>No treks have been assigned to you yet.</p>
+    <p>No treks assigned yet.</p>
   {% endif %}
 </body>
 </html>

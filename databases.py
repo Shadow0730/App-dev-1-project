@@ -32,6 +32,11 @@ class StaffProfile(db.Model):
 
     user = db.relationship("User", back_populates="staff_profile")
 
+class Place(db.Model):
+    __tablename__ = "places"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True, nullable=False)
 
 class Trek(db.Model):
     __tablename__ = "treks"
@@ -40,6 +45,8 @@ class Trek(db.Model):
     name = db.Column(db.String(150), nullable=False)
     difficulty = db.Column(db.String(20), nullable=False)  # EASY/MEDIUM/HARD
     duration_days = db.Column(db.Integer, nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
     available_slots = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(20), nullable=False, default="DRAFT")  # DRAFT/PUBLISHED/CANCELLED
 

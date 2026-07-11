@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head><title>Trek History</title></head>
+<body>
+  <h2>My Trekking History</h2>
+  <a href="{{ url_for('user_dashboard') }}">Back to Dashboard</a>
+
+  {% if history %}
+    <table border="1" cellpadding="8">
+      <tr>
+        <th>Booking ID</th>
+        <th>Trek</th>
+        <th>Final Booking Status</th>
+      </tr>
+      {% for b in history %}
+      <tr>
+        <td>{{ b.id }}</td>
+        <td>{{ b.trek.name }}</td>
+        <td>{{ b.booking_status }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>No trekking history yet.</p>
+  {% endif %}
+</body>
+</html>
