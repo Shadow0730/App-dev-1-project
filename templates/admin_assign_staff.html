@@ -10,7 +10,7 @@
     <select name="staff_id" required>
       <option value="">-- select --</option>
       {% for s in staff %}
-        <option value="{{ s.id }}" {% if trek.assigned_staff_id == s.id %}selected{% endif %}>
+        <option value="{{ s.id }}" {% if s.staff_profile and trek.assigned_staff_id == s.staff_profile.id %}selected{% endif %}>
           {{ s.name }} ({{ s.email }})
         </option>
       {% endfor %}

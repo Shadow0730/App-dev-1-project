@@ -1,9 +1,8 @@
-<!doctype html>
-<html>
-<head><title>My Profile</title></head>
-<body>
-  <h2>My Profile</h2>
-  <a href="{{ url_for('user_dashboard') }}">Back to Dashboard</a>
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+{% include "user_nav.html" %}
+<h2>My Profile</h2>
 
   <form method="POST" action="{{ url_for('user_profile_update') }}">
     <label>Name</label><br>
@@ -14,5 +13,4 @@
 
     <button type="submit">Update Profile</button>
   </form>
-</body>
-</html>
+{% endblock %}

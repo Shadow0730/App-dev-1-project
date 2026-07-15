@@ -1,26 +1,43 @@
-<!doctype html>
-<html>
-<head><title>Staff Signup</title></head>
-<body>
-  <h2>Staff Signup</h2>
+{% extends "base.html" %}
+
+{% block title %}Staff Sign Up{% endblock %}
+
+{% block content %}
+<div class="auth-card" style="margin: 40px auto;">
+  <div class="auth-title">
+    <h1>Trek Management</h1>
+    <p style="color:#6b7280;">Create your staff account</p>
+  </div>
 
   <form method="POST" action="{{ url_for('signup_staff') }}">
-    <label>Name</label><br>
-    <input name="name" required><br><br>
+    <div class="form-row">
+      <label>Name</label>
+      <input name="name" required>
+    </div>
 
-    <label>Email</label><br>
-    <input type="email" name="email" required><br><br>
+    <div class="form-row">
+      <label>Email</label>
+      <input type="email" name="email" required>
+    </div>
 
-    <label>Password</label><br>
-    <input type="password" name="password" required><br><br>
+    <div class="form-row">
+      <label>Password</label>
+      <input type="password" name="password" required>
+    </div>
 
-    <label>Phone</label><br>
-    <input name="phone"><br><br>
+    <div class="form-row">
+      <label>Phone</label>
+      <input name="phone">
+    </div>
 
-    <label>Experience (years)</label><br>
-    <input name="experience_years" type="number" min="0"><br><br>
+    <div class="form-row">
+      <label>Experience Years</label>
+      <input name="experience_years" type="number" min="0">
+    </div>
 
-    <button type="submit">Sign Up (Staff)</button>
+    <div style="text-align: center;">
+      <button class="btn" type="submit">sign up</button>
+    </div>
   </form>
-</body>
-</html>
+</div>
+{% endblock %}

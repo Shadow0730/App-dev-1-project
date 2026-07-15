@@ -1,5 +1,6 @@
+from datetime import datetime
 from flask import Flask, flash, render_template, request, redirect, url_for, session
-from databases import db, User, Trek, StaffProfile, Booking
+from databases import db, User, Trek, StaffProfile, Booking, Place
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///trekking.db"
@@ -23,7 +24,7 @@ with app.app_context():
 
 @app.route("/")
 def home():
-    return render_template("home.html")
+    return render_template("login.html",show_topbar=False)
 
 @app.route("/signup/trekker", methods=["GET", "POST"])
 def signup_trekker():
@@ -102,6 +103,7 @@ def login():
         session.clear()
         session["user_id"] = user.id
         session["role"] = user.role
+        session["name"] = user.name
 
         if user.role == "ADMIN":
             return redirect(url_for("admin_dashboard"))
@@ -109,7 +111,7 @@ def login():
             return redirect(url_for("staff_dashboard"))
         else: 
             return redirect(url_for("user_dashboard"))
-    return render_template("login.html")
+    return render_template("login.html", show_topbar=False)
 
 @app.route("/admin/dashboard", methods=["GET"])
 def admin_dashboard():
@@ -119,6 +121,16 @@ def admin_dashboard():
     return render_template(
         "admin_d.html",
     )
+
+
+def ensure_place_from_trek_name(trek_name: str):
+    trek_name = (trek_name or "").strip()
+    if not trek_name:
+        return
+
+    exists = Place.query.filter(Place.name.ilike(trek_name)).first()
+    if not exists:
+        db.session.add(Place(name=trek_name))
 
 # admin treck routes and form functions
 @app.route("/admin/treks", methods=["GET"])
@@ -162,8 +174,13 @@ def admin_trek_edit_post(trek_id):
     name = request.form.get("name", "").strip()
     difficulty = request.form.get("difficulty", "").strip()
     duration_days = request.form.get("duration_days", "").strip()
+    location = request.form.get("location", "").strip()
+    start_date_raw = request.form.get("start_date", "").strip()
+    end_date_raw = request.form.get("end_date", "").strip()
     available_slots = request.form.get("available_slots", "").strip()
-    status = request.form.get("status", "").strip()
+    status = request.form.get("status", "DRAFT").strip()
+    start_date = datetime.strptime(start_date_raw, "%Y-%m-%d").date()
+    end_date = datetime.strptime(end_date_raw, "%Y-%m-%d").date()
 
     if not name or not difficulty or not duration_days or not available_slots or not status:
         flash("All fields are required.", "warning")
@@ -171,9 +188,14 @@ def admin_trek_edit_post(trek_id):
 
     trek.name = name
     trek.difficulty = difficulty
+    trek.location = location
     trek.duration_days = int(duration_days)
+    trek.start_date = start_date
+    trek.end_date = end_date
     trek.available_slots = int(available_slots)
     trek.status = status
+
+    ensure_place_from_trek_name(name)
 
     db.session.commit()
     flash(f"Trek '{trek.name}' updated successfully.", "success")
@@ -188,10 +210,15 @@ def admin_trek_new_post():
     name = request.form.get("name", "").strip()
     difficulty = request.form.get("difficulty", "").strip()
     duration_days = request.form.get("duration_days", "").strip()
+    start_date_raw = request.form.get("start_date", "").strip()
+    location = request.form.get("location", "").strip()
+    end_date_raw = request.form.get("end_date", "").strip()
     available_slots = request.form.get("available_slots", "").strip()
     status = request.form.get("status", "DRAFT").strip()
+    start_date = datetime.strptime(start_date_raw, "%Y-%m-%d").date()
+    end_date = datetime.strptime(end_date_raw, "%Y-%m-%d").date()
 
-    if not name:
+    if not name or not difficulty or not duration_days or not available_slots or not start_date or not end_date:
         flash("All fields are required.", "warning")
         return redirect(url_for("admin_trek_new"))
 
@@ -199,9 +226,13 @@ def admin_trek_new_post():
         name=name,
         difficulty=difficulty,
         duration_days=int(duration_days),
+        location=location,
         available_slots=int(available_slots),
+        start_date=start_date,
+        end_date=end_date,
         status=status,
     )
+    ensure_place_from_trek_name(name)
     db.session.add(trek)
     db.session.commit()
 
@@ -251,12 +282,17 @@ def admin_staff_accept(staff_id):
         return redirect(url_for("login"))
 
     staff = User.query.get_or_404(staff_id)
-    name = staff.name
+
+    if not staff.staff_profile:
+        flash("Staff profile not found.", "danger")
+        return redirect(url_for("admin_staff"))
+
+    staff.staff_profile.accepted = True
 
     staff.accepted = True
     db.session.commit()
 
-    flash(f"Staff '{name}' accepted.", "success")
+    flash(f"Staff '{staff.name}' accepted.", "success")
     return redirect(url_for("admin_staff"))
 
 @app.get("/admin/trek/<int:trek_id>/assign-staff")
@@ -282,12 +318,52 @@ def admin_assign_staff_post(trek_id):
         flash("Please select a staff member.", "warning")
         return redirect(url_for("admin_assign_staff", trek_id=trek_id))
 
-    trek.assigned_staff_id = int(staff_id)
+    staff_user = User.query.get_or_404(int(staff_id))
+
+    if not staff_user.staff_profile:
+        flash("Selected staff profile not found.", "danger")
+        return redirect(url_for("admin_assign_staff", trek_id=trek_id))
+
+    trek.assigned_staff_id = staff_user.staff_profile.id
     db.session.commit()
 
     flash(f"Staff assigned to trek '{trek.name}'.", "success")
     return redirect(url_for("admin_treks"))
 
+@app.route("/admin/users")
+def admin_users():
+    if session.get("role") != "ADMIN":
+        return redirect(url_for("login"))
+
+    users = User.query.filter_by(role="TREKKER").all()
+    return render_template("admin_u.html", users=users)
+
+
+@app.route("/admin/users/<int:user_id>/delete", methods=["POST"])
+def admin_user_delete(user_id):
+    if session.get("role") != "ADMIN":
+        return redirect(url_for("login"))
+
+    user = User.query.get_or_404(user_id)
+
+    if user.role == "ADMIN":
+        flash("Admin cannot be deleted.", "warning")
+        return redirect(url_for("admin_users"))
+
+    db.session.delete(user)
+    db.session.commit()
+
+    flash(f"User '{user.name}' deleted successfully.", "success")
+    return redirect(url_for("admin_users"))
+
+
+@app.route("/admin/bookings")
+def admin_bookings():
+    if session.get("role") != "ADMIN":
+        return redirect(url_for("login"))
+
+    bookings = Booking.query.order_by(Booking.booking_date.desc()).all()
+    return render_template("admin_b.html", bookings=bookings)
 
 # --- SEARCH ---
 @app.post("/admin/search")
@@ -295,32 +371,42 @@ def admin_search():
     if session.get("role") != "ADMIN":
         return redirect(url_for("login"))
 
-    query = request.form.get("query", "").strip().lower()
+    query = request.form.get("query", "").strip()
     search_type = request.form.get("search_type", "all")
 
     treks = []
     staff = []
     users = []
 
-    if search_type in ["all", "trek"]:
-        treks = Trek.query.filter(Trek.name.ilike(f"%{query}%")).all()
+    if query:
+        if search_type in ["all", "trek"]:
+            treks = Trek.query.filter(
+                Trek.name.ilike(f"%{query}%") |
+                Trek.location.ilike(f"%{query}%")
+            ).all()
 
-    if search_type in ["all", "staff"]:
-        staff = User.query.filter(
-            (User.role == "STAFF") & (User.name.ilike(f"%{query}%") | User.email.ilike(f"%{query}%"))
-        ).all()
+        if search_type in ["all", "staff"]:
+            staff = User.query.filter(
+                User.role == "STAFF",
+                User.name.ilike(f"%{query}%") |
+                User.email.ilike(f"%{query}%")
+            ).all()
 
-    if search_type in ["all", "user"]:
-        users = User.query.filter(
-            (User.role == "TREKKER") & (User.name.ilike(f"%{query}%") | User.email.ilike(f"%{query}%"))
-        ).all()
+        if search_type in ["all", "user"]:
+            users = User.query.filter(
+                User.role == "TREKKER",
+                User.name.ilike(f"%{query}%") |
+                User.email.ilike(f"%{query}%")
+            ).all()
 
     return render_template(
-        "admin_search_results.html",
+        "admin_d.html",
         query=query,
+        search_type=search_type,
         treks=treks,
         staff=staff,
         users=users,
+        searched=True
     )
 
 
@@ -331,8 +417,12 @@ def staff_dashboard():
         return redirect(url_for("login"))
 
     staff_id = session.get("user_id")
+    staff = StaffProfile.query.filter_by(user_id=session.get("user_id")).first()
+    if not staff or not staff.accepted:
+        flash("Your dashboard access is not enabled by admin.", "danger")
+        return redirect(url_for("login"))
 
-    assigned_treks = Trek.query.filter_by(assigned_staff_id=staff_id).all()
+    assigned_treks = Trek.query.filter_by(assigned_staff_id=staff.id).all()
     assigned_trek_ids = [t.id for t in assigned_treks]
 
     # Count trekkers registered in assigned treks
@@ -355,11 +445,12 @@ def staff_trek_detail(trek_id):
     if session.get("role") != "STAFF":
         return redirect(url_for("login"))
 
-    staff_id = session.get("user_id")
+    staff = StaffProfile.query.filter_by(user_id=session.get("user_id")).first()
     trek = Trek.query.get_or_404(trek_id)
+    booked_count = Booking.query.filter_by(trek_id=trek.id).count()
+    total_slots = trek.available_slots + booked_count
 
-    # Ensure only assigned staff can access
-    if trek.assigned_staff_id != staff_id:
+    if not staff or trek.assigned_staff_id != staff.id:
         flash("You are not allowed to access this trek.", "danger")
         return redirect(url_for("staff_dashboard"))
 
@@ -368,7 +459,8 @@ def staff_trek_detail(trek_id):
     return render_template(
         "staf_td.html",
         trek=trek,
-        participants=participants
+        participants=participants,
+        total_slots=total_slots,
     )
 
 
@@ -378,10 +470,10 @@ def staff_update_slots(trek_id):
     if session.get("role") != "STAFF":
         return redirect(url_for("login"))
 
-    staff_id = session.get("user_id")
+    staff = StaffProfile.query.filter_by(user_id=session.get("user_id")).first()
     trek = Trek.query.get_or_404(trek_id)
 
-    if trek.assigned_staff_id != staff_id:
+    if not staff or trek.assigned_staff_id != staff.id:
         flash("Unauthorized action.", "danger")
         return redirect(url_for("staff_dashboard"))
 
@@ -407,10 +499,10 @@ def staff_update_status(trek_id):
     if session.get("role") != "STAFF":
         return redirect(url_for("login"))
 
-    staff_id = session.get("user_id")
+    staff = StaffProfile.query.filter_by(user_id=session.get("user_id")).first()
     trek = Trek.query.get_or_404(trek_id)
 
-    if trek.assigned_staff_id != staff_id:
+    if not staff or trek.assigned_staff_id != staff.id:
         flash("Unauthorized action.", "danger")
         return redirect(url_for("staff_dashboard"))
 
@@ -428,14 +520,15 @@ def staff_remove_participant(trek_id, booking_id):
     if session.get("role") != "STAFF":
         return redirect(url_for("login"))
 
-    staff_id = session.get("user_id")
+    staff = StaffProfile.query.filter_by(user_id=session.get("user_id")).first()
     trek = Trek.query.get_or_404(trek_id)
 
-    if trek.assigned_staff_id != staff_id:
+    if not staff or trek.assigned_staff_id != staff.id:
         flash("Unauthorized action.", "danger")
         return redirect(url_for("staff_dashboard"))
 
     booking = Booking.query.get_or_404(booking_id)
+    trek.available_slots += 1
     db.session.delete(booking)
     db.session.commit()
 
@@ -497,29 +590,12 @@ def user_treks():
     if session.get("role") != "TREKKER":
         return redirect(url_for("login"))
 
-    difficulty = request.args.get("difficulty", "").strip()
-    location = request.args.get("location", "").strip()
-    q = request.args.get("q", "").strip()
+    treks = Trek.query.filter(
+        Trek.status == "OPEN",
+        Trek.available_slots > 0
+    ).order_by(Trek.id.desc()).all()
 
-    filters = [Trek.status == "OPEN", Trek.available_slots > 0]
-
-    if difficulty:
-        filters.append(Trek.difficulty.ilike(difficulty))
-    if location:
-        filters.append(Trek.location.ilike(f"%{location}%"))
-    if q:
-        filters.append(Trek.name.ilike(f"%{q}%"))
-
-    treks = Trek.query.filter(and_(*filters)).order_by(Trek.id.desc()).all()
-
-    return render_template(
-        "user_t.html",
-        treks=treks,
-        selected_difficulty=difficulty,
-        selected_location=location,
-        search_query=q
-    )
-
+    return render_template("user_t.html", treks=treks)
 
 # ---------------- BOOK TREK ----------------
 @app.post("/user/trek/<int:trek_id>/book")

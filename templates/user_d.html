@@ -1,18 +1,14 @@
-<!doctype html>
-<html>
-<head><title>User Dashboard</title></head>
-<body>
-  <h2>User Dashboard</h2>
-  <a href="{{ url_for('logout') }}">Logout</a>
+{% extends "base.html" %}
+{% block title %}User Dashboard{% endblock %}
+{% block content %}
+{% include "user_nav.html" %}
+<h2>User Dashboard</h2>
 
-  <p><strong>Total Bookings:</strong> {{ total_bookings }}</p>
-  <p><strong>Active Bookings:</strong> {{ active_bookings }}</p>
+<div class="grid-2">
+  <div class="stat"><div class="label">Total Bookings</div><div class="value">{{ total_bookings }}</div></div>
+  <div class="stat"><div class="label">Active Bookings</div><div class="value">{{ active_bookings }}</div></div>
+</div>
 
-  <ul>
-    <li><a href="{{ url_for('user_profile') }}">My Profile</a></li>
-    <li><a href="{{ url_for('user_treks') }}">View Open Treks</a></li>
-    <li><a href="{{ url_for('user_my_bookings') }}">My Bookings</a></li>
-    <li><a href="{{ url_for('user_trek_history') }}">Trek History</a></li>
-  </ul>
-</body>
-</html>
+<div style="height:16px;"></div>
+
+{% endblock %}

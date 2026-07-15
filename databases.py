@@ -44,6 +44,7 @@ class Trek(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
     difficulty = db.Column(db.String(20), nullable=False)  # EASY/MEDIUM/HARD
+    location = db.Column(db.String(150), nullable=True)
     duration_days = db.Column(db.Integer, nullable=False)
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)

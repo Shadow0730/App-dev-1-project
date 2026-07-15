@@ -1,7 +1,9 @@
-<!doctype html>
-<html>
-<head><title>Manage Staff</title></head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Manage Staff{% endblock %}
+
+{% block content %}
+  {% include "admin_nav.html" %}
   <h2>Manage Staff</h2>
   <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
 
@@ -15,6 +17,7 @@
         <th>Experience</th>
         <th>Actions</th>
         <th>accept</th>
+        <th>Status</th>
       </tr>
       {% for s in staff %}
         <tr>
@@ -30,8 +33,15 @@
           </td>
           <td>
             <form method="POST" action="{{ url_for('admin_staff_accept', staff_id=s.id) }}" style="display:inline;">
-              <button type="checkbox" onclick="return confirm('Accept this staff?')"></button>
+              <button type="submit" onclick="return confirm('Accept this staff?')">Accept</button>
             </form>
+          </td>
+          <td>
+            {% if s.staff_profile and s.staff_profile.accepted %}
+              Accepted
+            {% else %}
+              Pending
+            {% endif %}
           </td>
         </tr>
       {% endfor %}
@@ -39,5 +49,4 @@
   {% else %}
     <p>No staff added yet.</p>
   {% endif %}
-</body>
-</html>
+{% endblock %}

@@ -1,25 +1,35 @@
-<!doctype html>
-<html>
-<head>
-  <title>Login</title>
-</head>
-<body>
-  <h2>Sign In</h2>
+{% extends "base.html" %}
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, msg in messages %}
-      <p><b>{{ category }}</b>: {{ msg }}</p>
-    {% endfor %}
-  {% endwith %}
+{% block title %}Trek Management Login{% endblock %}
 
-  <form method="POST" action="/login">
-    <label>Email</label><br>
-    <input type="email" name="email" required><br><br>
+{% block content %}
+<div class="auth-card" style="margin: 40px auto;">
+  <div class="auth-title">
+    <h1>TrekEase</h1>
+    <p style="color:#6b7280;">Login to continue</p>
+  </div>
 
-    <label>Password</label><br>
-    <input type="password" name="password" required><br><br>
+  <form method="POST" action="{{ url_for('login') }}">
+    <div class="form-row">
+      <label>Email</label>
+      <input type="email" name="email" required>
+    </div>
 
-    <button type="submit">Login</button>
+    <div class="form-row">
+      <label>Password</label>
+      <input type="password" name="password" required>
+    </div>
+
+    <div style="text-align: center;">
+      <button class="btn" type="submit">Login</button>
+    </div>
   </form>
-</body>
-</html>
+
+  <hr style="border:none; border-top:1px solid #e5e7eb; margin:18px 0;">
+
+  <div class="actions-inline" style="justify-content:center;">
+    <a class="btn" href="{{ url_for('signup_trekker') }}">Sign Up Trekker</a>
+    <a class="btn" href="{{ url_for('signup_staff') }}">Sign Up Staff</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}View Bookings{% endblock %}
+
+{% block content %}
+  {% include "admin_nav.html" %}
+
+  <div class="card">
+    <div class="actions-inline" style="justify-content: space-between; margin-bottom: 14px;">
+      <h2 style="margin: 0;">View Bookings</h2>
+      <span style="color: #6b7280;">Total Bookings: {{ bookings|length }}</span>
+    </div>
+
+    {% if bookings %}
+      <table>
+        <tr>
+          <th>Booking ID</th>
+          <th>User</th>
+          <th>Email</th>
+          <th>Trek</th>
+          <th>Status</th>
+          <th>Booking Date</th>
+        </tr>
+
+        {% for booking in bookings %}
+          <tr>
+            <td>{{ booking.id }}</td>
+            <td>{{ booking.user.name }}</td>
+            <td>{{ booking.user.email }}</td>
+            <td>{{ booking.trek.name }}</td>
+            <td>{{ booking.booking_status }}</td>
+            <td>{{ booking.booking_date }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>No bookings found.</p>
+    {% endif %}
+  </div>
+{% endblock %}

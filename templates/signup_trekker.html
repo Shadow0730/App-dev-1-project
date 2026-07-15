@@ -1,20 +1,35 @@
-<!doctype html>
-<html>
-<head><title>Trekker Signup</title></head>
-<body>
-  <h2>Trekker Signup</h2>
+{% extends "base.html" %}
+
+{% block title %}Trekker Sign Up{% endblock %}
+
+{% block content %}
+<div class="auth-card" style="margin: 40px auto;">
+  <div class="auth-title">
+    <h1>Trek Management</h1>
+    <p style="color:#6b7280;">Create your trekker account</p>
+  </div>
 
   <form method="POST" action="{{ url_for('signup_trekker') }}">
-    <label>Name</label><br>
-    <input name="name" required><br><br>
+    <div class="form-row">
+      <label>Name</label>
+      <input name="name" required>
+    </div>
 
-    <label>Email</label><br>
-    <input type="email" name="email" required><br><br>
+    <div class="form-row">
+      <label>Email</label>
+      <input type="email" name="email" required>
+    </div>
 
-    <label>Password</label><br>
-    <input type="password" name="password" required><br><br>
+    <div class="form-row">
+      <label>Password</label>
+      <input type="password" name="password" required>
+    </div>
 
-    <button type="submit">Sign Up</button>
+    <div style="text-align: center;">
+      <button class="btn" type="submit">sign up</button>
+    </div>
   </form>
-</body>
-</html>
+
+
+</div>
+{% endblock %}

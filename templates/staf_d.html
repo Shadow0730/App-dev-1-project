@@ -1,40 +1,24 @@
-<!doctype html>
-<html>
-<head>
-  <title>Staff Dashboard</title>
-</head>
-<body>
-  <h2>Trek Staff Dashboard</h2>
-  <p><a href="{{ url_for('logout') }}">Logout</a></p>
+{% extends "base.html" %}
+{% block title %}Staff Dashboard{% endblock %}
+{% block content %}
+<h2>Staff Dashboard</h2>
 
-  <h3>Summary</h3>
-  <p><strong>Assigned Treks:</strong> {{ treks|length }}</p>
-  <p><strong>Total Registered Trekkers:</strong> {{ registered_count }}</p>
+<div class="grid-2">
+  <div class="stat"><div class="label">Assigned Treks</div><div class="value">{{ treks|length }}</div></div>
+  <div class="stat"><div class="label">Registered Trekkers</div><div class="value">{{ registered_count }}</div></div>
+</div>
 
-  <h3>Your Assigned Treks</h3>
-  {% if treks %}
-    <table border="1" cellpadding="8">
-      <tr>
-        <th>ID</th>
-        <th>Trek Name</th>
-        <th>Status</th>
-        <th>Available Slots</th>
-        <th>Action</th>
-      </tr>
-      {% for trek in treks %}
-        <tr>
-          <td>{{ trek.id }}</td>
-          <td>{{ trek.name }}</td>
-          <td>{{ trek.status }}</td>
-          <td>{{ trek.available_slots }}</td>
-          <td>
-            <a href="{{ url_for('staff_trek_detail', trek_id=trek.id) }}">Manage Trek</a>
-          </td>
-        </tr>
-      {% endfor %}
-    </table>
-  {% else %}
-    <p>No treks assigned yet.</p>
-  {% endif %}
-</body>
-</html>
+<div style="height:16px;"></div>
+<table>
+  <tr><th>ID</th><th>Name</th><th>Status</th><th>Slots</th><th>Action</th></tr>
+  {% for trek in treks %}
+  <tr>
+    <td>{{ trek.id }}</td>
+    <td>{{ trek.name }}</td>
+    <td>{{ trek.status }}</td>
+    <td>{{ trek.available_slots }}</td>
+    <td><a href="{{ url_for('staff_trek_detail', trek_id=trek.id) }}">Manage</a></td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

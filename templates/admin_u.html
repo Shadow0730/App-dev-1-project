@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+  {% include "admin_nav.html" %}
+
+  <div class="card">
+    <div class="actions-inline" style="justify-content: space-between; margin-bottom: 14px;">
+      <h2 style="margin: 0;">Manage Users</h2>
+      <span style="color: #6b7280;">Total Users: {{ users|length }}</span>
+    </div>
+
+    {% if users %}
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Created At</th>
+          <th>Action</th>
+        </tr>
+
+        {% for user in users %}
+          <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.role }}</td>
+            <td>{{ user.created_at }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('admin_user_delete', user_id=user.id) }}">
+                <button class="btn-danger" type="submit" onclick="return confirm('Delete this user?')">
+                  Delete
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>No users found.</p>
+    {% endif %}
+  </div>
+{% endblock %}

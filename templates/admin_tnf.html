@@ -1,35 +1,115 @@
-<!doctype html>
-<html>
-<head><title>{% if trek %}Edit{% else %}Create{% endif %} Trek</title></head>
-<body>
-  <h2>{% if trek %}Edit Trek{% else %}Create Trek{% endif %}</h2>
+{% extends "base.html" %}
+{% block title %}{% if trek %}Edit Trek{% else %}Create Trek{% endif %}{% endblock %}
 
-  <form method="POST" action="{% if trek %}{{ url_for('admin_trek_edit_post', trek_id=trek.id) }}{% else %}{{ url_for('admin_trek_new_post') }}{% endif %}">
-    <label>Trek Name</label><br>
-    <input name="name" value="{{ trek.name if trek else '' }}" required><br><br>
+{% block content %}
+<div class="actions-inline" style="justify-content:space-between; margin-bottom:12px;">
+  <h2 style="margin:0;">{% if trek %}Edit Trek{% else %}Create Trek{% endif %}</h2>
+  <a href="{{ url_for('admin_treks') }}">← Back to Treks</a>
+</div>
 
-    <label>Difficulty</label><br>
-    <select name="difficulty" required>
-      <option value="">-- select --</option>
-      <option value="EASY" {% if trek and trek.difficulty == 'EASY' %}selected{% endif %}>Easy</option>
-      <option value="MEDIUM" {% if trek and trek.difficulty == 'MEDIUM' %}selected{% endif %}>Medium</option>
-      <option value="HARD" {% if trek and trek.difficulty == 'HARD' %}selected{% endif %}>Hard</option>
-    </select><br><br>
+<div class="card">
+  <form method="POST">
+    <div class="form-row">
+      <label for="name">Trek Name</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        value="{{ trek.name if trek else '' }}"
+        placeholder="Enter trek name"
+        required
+      >
+    </div>
 
-    <label>Duration (days)</label><br>
-    <input type="number" name="duration_days" value="{{ trek.duration_days if trek else '' }}" required><br><br>
+    <div class="grid-2">
+      <div class="form-row">
+        <label for="difficulty">Difficulty</label>
+        {% set current_difficulty = trek.difficulty if trek else '' %}
+        <select id="difficulty" name="difficulty" required>
+          <option value="">-- Select difficulty --</option>
+          <option value="EASY" {% if current_difficulty == 'EASY' %}selected{% endif %}>EASY</option>
+          <option value="MEDIUM" {% if current_difficulty == 'MEDIUM' %}selected{% endif %}>MEDIUM</option>
+          <option value="HARD" {% if current_difficulty == 'HARD' %}selected{% endif %}>HARD</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="location">Location</label>
+        <input
+          type="text"
+          id="location"
+          name="location"
+          value="{{ trek.location if trek else '' }}"
+          placeholder="Enter trek location"
+        >
+      </div>
 
-    <label>Available Slots</label><br>
-    <input type="number" name="available_slots" value="{{ trek.available_slots if trek else '' }}" required><br><br>
+      <div class="form-row">
+        <label for="available_slots">Available Slots</label>
+        <input
+          type="number"
+          id="available_slots"
+          name="available_slots"
+          min="0"
+          value="{{ trek.available_slots if trek else 0 }}"
+          required
+        >
+      </div>
+    </div>
 
-    <label>Status</label><br>
-    <select name="status">
-      <option value="DRAFT" {% if trek and trek.status == 'DRAFT' %}selected{% endif %}>Draft</option>
-      <option value="PUBLISHED" {% if trek and trek.status == 'PUBLISHED' %}selected{% endif %}>Published</option>
-      <option value="CANCELLED" {% if trek and trek.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
-    </select><br><br>
+    <div class="grid-2">
+      <div class="form-row">
+        <label for="duration_days">Duration (days)</label>
+        <input
+          type="number"
+          id="duration_days"
+          name="duration_days"
+          min="0"
+          value="{{ trek.duration_days if trek else 0 }}"
+          required
+        >
+      </div>
+      <div class="form-row">
+        <label for="start_date">Start Date</label>
+        <input
+          type="date"
+          id="start_date"
+          name="start_date"
+          value="{{ trek.start_date.strftime('%Y-%m-%d') if trek and trek.start_date else '' }}"
+          required
+        >
+      </div>
 
-    <button type="submit">{% if trek %}Update{% else %}Create{% endif %}</button>
+      <div class="form-row">
+        <label for="end_date">End Date</label>
+        <input
+          type="date"
+          id="end_date"
+          name="end_date"
+          value="{{ trek.end_date.strftime('%Y-%m-%d') if trek and trek.end_date else '' }}"
+          required
+        >
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label for="status">Trek Status</label>
+      {% set current_status = trek.status if trek else 'DRAFT' %}
+      <select id="status" name="status" required>
+        <option value="DRAFT" {% if current_status == 'DRAFT' %}selected{% endif %}>DRAFT</option>
+        <option value="OPEN" {% if current_status == 'OPEN' %}selected{% endif %}>OPEN</option>
+        <option value="CLOSED" {% if current_status == 'CLOSED' %}selected{% endif %}>CLOSED</option>
+        <option value="STARTED" {% if current_status == 'STARTED' %}selected{% endif %}>STARTED</option>
+        <option value="ONGOING" {% if current_status == 'ONGOING' %}selected{% endif %}>ONGOING</option>
+        <option value="COMPLETED" {% if current_status == 'COMPLETED' %}selected{% endif %}>COMPLETED</option>
+      </select>
+    </div>
+
+    <div class="actions-inline" style="margin-top:8px;">
+      <button class="btn" type="submit">
+        {% if trek %}Update Trek{% else %}Create Trek{% endif %}
+      </button>
+      <a href="{{ url_for('admin_treks') }}">Cancel</a>
+    </div>
   </form>
-</body>
-</html>
+</div>
+{% endblock %}
