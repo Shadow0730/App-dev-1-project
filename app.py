@@ -656,9 +656,9 @@ def user_trek_history():
 
     user_id = session.get("user_id")
 
-    history = Booking.query.filter(
+    history = Booking.query.join(Trek).filter(
         Booking.user_id == user_id,
-        Booking.booking_status.in_(["COMPLETED", "CANCELLED"])
+        Trek.status.in_(["COMPLETED"])
     ).order_by(Booking.id.desc()).all()
 
     return render_template("user_h.html", history=history)

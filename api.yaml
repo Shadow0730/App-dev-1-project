@@ -1,0 +1,422 @@
+info:
+  title: Trek Management Application API
+  version: 1.0.0
+  description: API route definition for the Flask Trek Management web application.
+
+servers:
+  - url: http://127.0.0.1:5000
+
+paths:
+  /:
+    get:
+      summary: Open login home page
+      responses:
+        "200":
+          description: Login page displayed
+
+  /login:
+    get:
+      summary: Display login page
+      responses:
+        "200":
+          description: Login page displayed
+    post:
+      summary: Authenticate user
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "302":
+          description: Redirects to role-specific dashboard
+
+  /signup/trekker:
+    get:
+      summary: Display trekker signup page
+      responses:
+        "200":
+          description: Trekker signup page displayed
+    post:
+      summary: Register a new trekker
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "302":
+          description: Redirects to login page after signup
+
+  /signup/staff:
+    get:
+      summary: Display staff signup page
+      responses:
+        "200":
+          description: Staff signup page displayed
+    post:
+      summary: Register a new staff account for admin approval
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                phone:
+                  type: string
+                experience_years:
+                  type: integer
+      responses:
+        "302":
+          description: Redirects to login page after signup
+
+  /admin/dashboard:
+    get:
+      summary: Display admin dashboard
+      responses:
+        "200":
+          description: Admin dashboard displayed
+        "302":
+          description: Redirects to login if not admin
+
+  /admin/treks:
+    get:
+      summary: View all treks
+      responses:
+        "200":
+          description: List of treks displayed
+
+  /admin/trek/new:
+    get:
+      summary: Display create trek form
+      responses:
+        "200":
+          description: Create trek form displayed
+    post:
+      summary: Create new trek
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                location:
+                  type: string
+                difficulty:
+                  type: string
+                duration_days:
+                  type: integer
+                start_date:
+                  type: string
+                  format: date
+                end_date:
+                  type: string
+                  format: date
+                available_slots:
+                  type: integer
+                status:
+                  type: string
+      responses:
+        "302":
+          description: Redirects to manage treks page
+
+  /admin/trek/{trek_id}:
+    get:
+      summary: View trek details
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trek details displayed
+
+  /admin/trek/{trek_id}/edit:
+    get:
+      summary: Display edit trek form
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Edit trek form displayed
+    post:
+      summary: Update trek details
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "302":
+          description: Redirects to trek details page
+
+  /admin/trek/{trek_id}/delete:
+    post:
+      summary: Delete trek
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "302":
+          description: Redirects to manage treks page
+
+  /admin/staff:
+    get:
+      summary: View all staff accounts
+      responses:
+        "200":
+          description: Staff list displayed
+
+  /admin/staff/{staff_id}/accept:
+    post:
+      summary: Accept staff account
+      parameters:
+        - name: staff_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "302":
+          description: Redirects to staff management page
+
+  /admin/staff/{staff_id}/delete:
+    post:
+      summary: Delete staff account
+      parameters:
+        - name: staff_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "302":
+          description: Redirects to staff management page
+
+  /admin/trek/{trek_id}/assign-staff:
+    get:
+      summary: Display assign staff form
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Assign staff form displayed
+    post:
+      summary: Assign staff to trek
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "302":
+          description: Redirects to manage treks page
+
+  /admin/users:
+    get:
+      summary: View trekker users
+      responses:
+        "200":
+          description: User list displayed
+
+  /admin/users/{user_id}/delete:
+    post:
+      summary: Delete trekker user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "302":
+          description: Redirects to user management page
+
+  /admin/bookings:
+    get:
+      summary: View all bookings
+      responses:
+        "200":
+          description: Booking list displayed
+
+  /admin/search:
+    post:
+      summary: Search treks, staff, and users
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                search_type:
+                  type: string
+      responses:
+        "200":
+          description: Search results displayed on admin dashboard
+
+  /staff/dashboard:
+    get:
+      summary: Display staff dashboard
+      responses:
+        "200":
+          description: Staff dashboard displayed
+
+  /staff/trek/{trek_id}:
+    get:
+      summary: Display assigned trek management page
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Staff trek management page displayed
+
+  /staff/trek/{trek_id}/slots:
+    post:
+      summary: Update available slots for assigned trek
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "302":
+          description: Redirects to staff trek detail page
+
+  /staff/trek/{trek_id}/status:
+    post:
+      summary: Update trek status for assigned trek
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "302":
+          description: Redirects to staff trek detail page
+
+  /staff/trek/{trek_id}/participant/{booking_id}/remove:
+    post:
+      summary: Remove participant from assigned trek
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: booking_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "302":
+          description: Redirects to staff trek detail page
+
+  /user/dashboard:
+    get:
+      summary: Display trekker dashboard
+      responses:
+        "200":
+          description: Trekker dashboard displayed
+
+  /user/profile:
+    get:
+      summary: Display user profile
+      responses:
+        "200":
+          description: User profile displayed
+    post:
+      summary: Update user profile
+      responses:
+        "302":
+          description: Redirects to profile page
+
+  /user/treks:
+    get:
+      summary: View open treks
+      responses:
+        "200":
+          description: Available treks displayed
+
+  /user/trek/{trek_id}/book:
+    post:
+      summary: Book a trek
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "302":
+          description: Redirects to user bookings page
+
+  /user/bookings:
+    get:
+      summary: View user bookings
+      responses:
+        "200":
+          description: User bookings displayed
+
+  /user/history:
+    get:
+      summary: View user trekking history
+      responses:
+        "200":
+          description: User trekking history displayed
+
+  /logout:
+    get:
+      summary: Logout user
+      responses:
+        "302":
+          description: Session cleared and redirected to login page
+
