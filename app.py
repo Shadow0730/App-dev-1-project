@@ -1,11 +1,15 @@
+import os
 from datetime import datetime
 from flask import Flask, flash, render_template, request, redirect, url_for, session
 from databases import db, User, Trek, StaffProfile, Booking, Place
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///trekking.db"
+database_url = os.environ.get("DATABASE_URL", "sqlite:///trekking.db")
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
-app.secret_key = "very_secret_key"
+app.secret_key = os.environ.get("SECRET_KEY", "dev-only-secret-key")
 
 db.init_app(app)
 
